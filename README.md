@@ -1,2 +1,3 @@
-# mkdocs-techdocs-frontmatter
-An MkDocs plugin to extract document frontmatter and include it in Backstage TechDocs metadata
+# mkdocs-techdocs
+
+A collection of MkDocs plugins designed to work with Spotify's TechDocs system

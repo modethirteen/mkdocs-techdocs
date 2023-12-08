@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mkdocs-techdocs-modethirteen-plugins"
+dynamic = ["version"]
+authors = [
+  { name = "James Andrew Vaughn", email = "jamesvaughn@modethirteen.com" }
+]
+description = "A collection of MkDocs plugins designed to work with Spotify's TechDocs system"
+readme = "README.md"
+requires_python = ">=3.7"
+dependencies = [
+  "mkdocs"
+]
+
+[tool.hatch.version]
+path = "modethirteen/mkdocs/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["modethirteen"]
+
+[tool.hatch.build.targets.sdist]
+exclude = ["tests"]
+
+[tool.hatch.build]
+only-packages = true
+
+[project.entry-points."mkdocs.plugins"]
+"modethirteen.techdocs-metadata" = "modethirteen.mkdocs.metadata:TechDocsMetadataPlugin"
