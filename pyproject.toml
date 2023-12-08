@@ -29,4 +29,4 @@ exclude = ["tests"]
 only-packages = true
 
 [project.entry-points."mkdocs.plugins"]
-"modethirteen.techdocs_frontmatter" = "modethirteen.mkdocs.techdocs_frontmatter:TechDocsFrontmatterPlugin"
+"modethirteen.techdocs-frontmatter" = "modethirteen.mkdocs.frontmatter:TechDocsFrontmatterPlugin"
