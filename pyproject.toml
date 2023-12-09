@@ -12,8 +12,7 @@ description = "A collection of MkDocs plugins designed to work with Spotify's Te
 readme = "README.md"
 requires_python = ">=3.7"
 dependencies = [
-  "mkdocs",
-  "PyYAML",
+  "mkdocs"
 ]
 
 [tool.hatch.version]
@@ -29,4 +28,4 @@ exclude = ["tests"]
 only-packages = true
 
 [project.entry-points."mkdocs.plugins"]
-"modethirteen.techdocs-frontmatter" = "modethirteen.mkdocs.frontmatter:TechDocsFrontmatterPlugin"
+"modethirteen.techdocs-metadata" = "modethirteen.mkdocs.metadata:TechDocsMetadataPlugin"
