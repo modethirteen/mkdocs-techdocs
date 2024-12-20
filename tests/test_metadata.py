@@ -109,7 +109,6 @@ def test_it_can_merge_metadata_file_content(mock_config, plugin_instance):
     f.write("type: how-to\ntags:\n- plugh")
   with open(os.path.join(docs_dir, "foobar", ".meta.yml"), "w", encoding="utf-8") as f:
     f.write("tags:\n- typescript\ntype: reference")
-
   with open(os.path.join(docs_dir, "xyzzy", "foo.md"), "w", encoding="utf-8") as f:
     f.write("# foo")
   foo.read_source(config=mock_config)
@@ -122,8 +121,12 @@ def test_it_can_merge_metadata_file_content(mock_config, plugin_instance):
 
   # act
   plugin_instance.on_pre_page(page=foo)
+  plugin_instance.on_page_markdown(page=foo, markdown="markdown")
   plugin_instance.on_pre_page(page=bar)
+  plugin_instance.on_page_markdown(page=bar, markdown="markdown")
   plugin_instance.on_pre_page(page=baz)
+  plugin_instance.on_page_markdown(page=baz, markdown="markdown")
+  plugin_instance.on_post_build(config=mock_config)
 
   # assert
   assert foo.meta == {
@@ -141,6 +144,16 @@ def test_it_can_merge_metadata_file_content(mock_config, plugin_instance):
     "tags": ["php"],
     "description": "bazz"
   }
+  metadata_path = os.path.join(site_dir, "techdocs_metadata.json")
+  assert os.path.exists(metadata_path)
+  with open(metadata_path, "r", encoding="utf-8") as fh:
+    metadata = json.load(fh)
+    assert "pages" in metadata
+    assert metadata["pages"] == [
+      { "url": "xyzzy/foo/", "meta": { "type": "how-to", "tags": ["plugh"], "description": "bazz" }},
+      { "url": "bar/", "meta": { "key3": "value3", "key4": "value4", "description": "bazz" }},
+      { "url": "foobar/baz/", "meta": { "type": "reference", "tags": ["php"], "description": "bazz" }}
+    ]
 
 if __name__ == "__main__":
   pytest.main()
