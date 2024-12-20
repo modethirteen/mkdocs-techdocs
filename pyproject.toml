@@ -14,6 +14,7 @@ requires_python = ">=3.7"
 dependencies = [
   "mkdocs"
 ]
+license = "Apache-2.0"
 
 [tool.hatch.version]
 path = "modethirteen/mkdocs/__init__.py"
