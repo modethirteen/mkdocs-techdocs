@@ -1,4 +1,6 @@
 from mkdocs.plugins import BasePlugin
+from mkdocs.structure.pages import Page
+from mkdocs.config.defaults import MkDocsConfig
 import json
 import yaml
 import os
@@ -7,7 +9,7 @@ class TechDocsMetadataPlugin(BasePlugin):
   def __init__(self):
     self.data = []
 
-  def on_pre_page(self, page, **kwargs):
+  def on_pre_page(self, page: Page, **kwargs) -> Page:
     file_path = page.file.abs_src_path
     file_dir = os.path.dirname(file_path)
 
@@ -30,13 +32,14 @@ class TechDocsMetadataPlugin(BasePlugin):
     if merged_meta:
       page_meta = page.meta or {}
       page.meta = {**merged_meta, **page_meta}
+    return page
 
-  def on_page_markdown(self, markdown, page, **kwargs):
+  def on_page_markdown(self, markdown: str, page: Page, **kwargs) -> str:
     if page.meta:
       self.data.append({ "url": page.file.url, "meta": page.meta })
     return markdown
 
-  def on_post_build(self, config, **kwargs):
+  def on_post_build(self, config: MkDocsConfig, **kwargs) -> None:
     site_dir = config["site_dir"]
     if self.data:
       try:

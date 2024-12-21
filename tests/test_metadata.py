@@ -120,26 +120,26 @@ def test_it_can_merge_metadata_file_content(mock_config, plugin_instance):
   baz.read_source(config=mock_config)
 
   # act
-  plugin_instance.on_pre_page(page=foo)
-  plugin_instance.on_page_markdown(page=foo, markdown="markdown")
-  plugin_instance.on_pre_page(page=bar)
-  plugin_instance.on_page_markdown(page=bar, markdown="markdown")
-  plugin_instance.on_pre_page(page=baz)
-  plugin_instance.on_page_markdown(page=baz, markdown="markdown")
+  result1 = plugin_instance.on_pre_page(page=foo)
+  plugin_instance.on_page_markdown(page=result1, markdown="markdown")
+  result2 = plugin_instance.on_pre_page(page=bar)
+  plugin_instance.on_page_markdown(page=result2, markdown="markdown")
+  result3 = plugin_instance.on_pre_page(page=baz)
+  plugin_instance.on_page_markdown(page=result3, markdown="markdown")
   plugin_instance.on_post_build(config=mock_config)
 
   # assert
-  assert foo.meta == {
+  assert result1.meta == {
     "type": "how-to",
     "tags": ["plugh"],
     "description": "bazz"
   }
-  assert bar.meta == {
+  assert result2.meta == {
     "key3": "value3",
     "key4": "value4",
     "description": "bazz"
   }
-  assert baz.meta == {
+  assert result3.meta == {
     "type": "reference",
     "tags": ["php"],
     "description": "bazz"
