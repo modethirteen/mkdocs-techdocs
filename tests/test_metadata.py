@@ -38,29 +38,29 @@ def test_it_can_store_page_frontmatter_metadata_in_techdocs_metadata(mock_config
   docs_dir = mock_config["docs_dir"]
   site_dir = mock_config["site_dir"]
   foo = Page(
-    "foo",
+    "lorem",
     File("foo.md", src_dir=docs_dir, dest_dir=site_dir, use_directory_urls=True),
     config={},
   )
   bar = Page(
-    "bar",
+    "ipsum",
     File("bar.md", src_dir=docs_dir, dest_dir=site_dir, use_directory_urls=True),
     config={},
   )
   baz = Page(
-    "baz",
+    "dolor",
     File("baz.md", src_dir=docs_dir, dest_dir=site_dir, use_directory_urls=True),
     config={},
   )
   plugin_instance.log = Mock()
   with open(os.path.join(docs_dir, "foo.md"), "w", encoding="utf-8") as f:
-    f.write("---\nkey1: value1\nkey2: value2\n---\n# foo")
+    f.write("---\nkey1: value1\nkey2: value2\n---\n# lorem")
   foo.read_source(config=mock_config)
   with open(os.path.join(docs_dir, "bar.md"), "w", encoding="utf-8") as f:
-    f.write("# bar")
+    f.write("# ipsum")
   bar.read_source(config=mock_config)
   with open(os.path.join(docs_dir, "baz.md"), "w", encoding="utf-8") as f:
-    f.write("---\nkey3: value3\nkey4: value4\n---\n# baz")
+    f.write("---\nkey3: value3\nkey4: value4\n---\n# dolor")
   baz.read_source(config=mock_config)
 
   # act
@@ -76,11 +76,11 @@ def test_it_can_store_page_frontmatter_metadata_in_techdocs_metadata(mock_config
     metadata = json.load(fh)
     assert "pages" in metadata
     assert metadata["pages"] == [
-      { "url": "foo/", "meta": { "key1": "value1", "key2": "value2" }},
-      { "url": "baz/", "meta": { "key3": "value3", "key4": "value4" }}
+      { "title": "lorem", "url": "foo/", "meta": { "key1": "value1", "key2": "value2" }},
+      { "title": "dolor", "url": "baz/", "meta": { "key3": "value3", "key4": "value4" }}
     ]
 
-def test_it_can_merge_metadata_file_content(mock_config, plugin_instance):
+def test_it_can_merge_metadata_file_content_in_techdocs_metadata(mock_config, plugin_instance):
 
   # arrange
   docs_dir = mock_config["docs_dir"]
@@ -120,39 +120,21 @@ def test_it_can_merge_metadata_file_content(mock_config, plugin_instance):
   baz.read_source(config=mock_config)
 
   # act
-  result1 = plugin_instance.on_pre_page(page=foo)
-  plugin_instance.on_page_markdown(page=result1, markdown="markdown")
-  result2 = plugin_instance.on_pre_page(page=bar)
-  plugin_instance.on_page_markdown(page=result2, markdown="markdown")
-  result3 = plugin_instance.on_pre_page(page=baz)
-  plugin_instance.on_page_markdown(page=result3, markdown="markdown")
+  plugin_instance.on_page_markdown(page=foo, markdown="markdown")
+  plugin_instance.on_page_markdown(page=bar, markdown="markdown")
+  plugin_instance.on_page_markdown(page=baz, markdown="markdown")
   plugin_instance.on_post_build(config=mock_config)
 
   # assert
-  assert result1.meta == {
-    "type": "how-to",
-    "tags": ["plugh"],
-    "description": "bazz"
-  }
-  assert result2.meta == {
-    "key3": "value3",
-    "key4": "value4",
-    "description": "bazz"
-  }
-  assert result3.meta == {
-    "type": "reference",
-    "tags": ["php"],
-    "description": "bazz"
-  }
   metadata_path = os.path.join(site_dir, "techdocs_metadata.json")
   assert os.path.exists(metadata_path)
   with open(metadata_path, "r", encoding="utf-8") as fh:
     metadata = json.load(fh)
     assert "pages" in metadata
     assert metadata["pages"] == [
-      { "url": "xyzzy/foo/", "meta": { "type": "how-to", "tags": ["plugh"], "description": "bazz" }},
-      { "url": "bar/", "meta": { "key3": "value3", "key4": "value4", "description": "bazz" }},
-      { "url": "foobar/baz/", "meta": { "type": "reference", "tags": ["php"], "description": "bazz" }}
+      { "title": "foo", "url": "xyzzy/foo/", "meta": { "type": "how-to", "tags": ["plugh"], "description": "bazz" }},
+      { "title": "bar", "url": "bar/", "meta": { "key3": "value3", "key4": "value4", "description": "bazz" }},
+      { "title": "baz", "url": "foobar/baz/", "meta": { "type": "reference", "tags": ["php"], "description": "bazz" }}
     ]
 
 if __name__ == "__main__":
