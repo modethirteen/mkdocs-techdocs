@@ -22,7 +22,11 @@ class TechDocsMetadataPlugin(BasePlugin):
         with open(meta_file_path, "r") as meta_file:
           meta_data = yaml.safe_load(meta_file)
           if meta_data:
-            merged_meta.update(meta_data)
+            for key, value in meta_data.items():
+              if key in merged_meta and isinstance(value, list) and isinstance(merged_meta[key], list):
+                merged_meta[key] = value + merged_meta[key]
+              elif key not in merged_meta:
+                merged_meta[key] = value
       parent_dir = os.path.dirname(current_dir)
       if parent_dir == current_dir:
         break
@@ -31,7 +35,13 @@ class TechDocsMetadataPlugin(BasePlugin):
     # merge the metadata into the page's frontmatter
     if merged_meta:
       page_meta = page.meta or {}
-      page.meta = {**merged_meta, **page_meta}
+      for key, value in merged_meta.items():
+        if key in page_meta:
+          if isinstance(value, list) and isinstance(page_meta[key], list):
+            page_meta[key] = value + page_meta[key]
+        else:
+          page_meta[key] = value
+      page.meta = page_meta
 
     if page.meta:
       self.data.append({ "title": page.title, "url": page.file.url, "meta": page.meta })
