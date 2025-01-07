@@ -101,6 +101,12 @@ def test_it_can_merge_metadata_file_content_in_techdocs_metadata(mock_config, pl
     File("bar.md", src_dir=docs_dir, dest_dir=site_dir, use_directory_urls=True),
     config={},
   )
+  os.mkdir(os.path.join(docs_dir, "xyzzy", "fox"))
+  rab = Page(
+    "rab",
+    File("xyzzy/fox/rab.md", src_dir=docs_dir, dest_dir=site_dir, use_directory_urls=True),
+    config={},
+  )
   os.mkdir(os.path.join(docs_dir, "foobar"))
   baz = Page(
     "baz",
@@ -110,27 +116,33 @@ def test_it_can_merge_metadata_file_content_in_techdocs_metadata(mock_config, pl
   plugin_instance.log = Mock()
   with open(os.path.join(docs_dir, ".meta.yml"), "w", encoding="utf-8") as f:
     f.write("description: bazz\ntags:\n- knapp")
+  with open(os.path.join(docs_dir, "bar.md"), "w", encoding="utf-8") as f:
+    f.write("---\nkey3: value3\nkey4: value4\n---\n# bar")
   with open(os.path.join(docs_dir, "xyzzy", ".meta.yml"), "w", encoding="utf-8") as f:
     f.write("type: how-to\ntags:\n- plugh")
-  with open(os.path.join(docs_dir, "foobar", ".meta.yml"), "w", encoding="utf-8") as f:
-    f.write("tags:\n- typescript\ntype: reference")
   with open(os.path.join(docs_dir, "xyzzy", "foo.md"), "w", encoding="utf-8") as f:
     f.write("# foo")
   with open(os.path.join(docs_dir, "xyzzy", "yyz.md"), "w", encoding="utf-8") as f:
     f.write("---\ntype: adr\n---\n# yyz")
-  with open(os.path.join(docs_dir, "bar.md"), "w", encoding="utf-8") as f:
-    f.write("---\nkey3: value3\nkey4: value4\n---\n# bar")
+  with open(os.path.join(docs_dir, "xyzzy", "fox", ".meta.yml"), "w", encoding="utf-8") as f:
+    f.write("type: explanation\ntags:\n- rust")
+  with open(os.path.join(docs_dir, "xyzzy", "fox", "rab.md"), "w", encoding="utf-8") as f:
+    f.write("# foo")
+  with open(os.path.join(docs_dir, "foobar", ".meta.yml"), "w", encoding="utf-8") as f:
+    f.write("tags:\n- typescript\ntype: reference")
   with open(os.path.join(docs_dir, "foobar", "baz.md"), "w", encoding="utf-8") as f:
     f.write("---\ntags:\n- php\n---\n# baz")
   foo.read_source(config=mock_config)
   yyz.read_source(config=mock_config)
   bar.read_source(config=mock_config)
+  rab.read_source(config=mock_config)
   baz.read_source(config=mock_config)
 
   # act
   plugin_instance.on_page_markdown(page=foo, markdown="markdown")
   plugin_instance.on_page_markdown(page=yyz, markdown="markdown")
   plugin_instance.on_page_markdown(page=bar, markdown="markdown")
+  plugin_instance.on_page_markdown(page=rab, markdown="markdown")
   plugin_instance.on_page_markdown(page=baz, markdown="markdown")
   plugin_instance.on_post_build(config=mock_config)
 
@@ -144,6 +156,7 @@ def test_it_can_merge_metadata_file_content_in_techdocs_metadata(mock_config, pl
       { "title": "foo", "url": "xyzzy/foo/", "meta": { "type": "how-to", "tags": ["knapp", "plugh"], "description": "bazz" }},
       { "title": "yyz", "url": "xyzzy/yyz/", "meta": { "type": "adr", "tags": ["knapp", "plugh"], "description": "bazz" }},
       { "title": "bar", "url": "bar/", "meta": { "key3": "value3", "key4": "value4", "tags": ["knapp"], "description": "bazz" }},
+      { "title": "rab", "url": "xyzzy/fox/rab/", "meta": { "type": "explanation", "tags": ["knapp", "plugh", "rust"], "description": "bazz" }},
       { "title": "baz", "url": "foobar/baz/", "meta": { "type": "reference", "tags": ["knapp", "typescript", "php"], "description": "bazz" }}
     ]
 
