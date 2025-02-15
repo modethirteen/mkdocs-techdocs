@@ -69,9 +69,9 @@ def test_it_can_store_page_frontmatter_metadata_in_techdocs_metadata(
     baz.read_source(config=mock_config)
 
     # act
-    plugin_instance.on_page_markdown(page=foo, markdown="markdown")
-    plugin_instance.on_page_markdown(page=bar, markdown="markdown")
-    plugin_instance.on_page_markdown(page=baz, markdown="markdown")
+    plugin_instance.on_page_markdown(page=foo, markdown="markdown", config=mock_config)
+    plugin_instance.on_page_markdown(page=bar, markdown="markdown", config=mock_config)
+    plugin_instance.on_page_markdown(page=baz, markdown="markdown", config=mock_config)
     plugin_instance.on_post_build(config=mock_config)
 
     # assert
@@ -85,16 +85,24 @@ def test_it_can_store_page_frontmatter_metadata_in_techdocs_metadata(
                 "title": "lorem",
                 "url": "foo/",
                 "meta": {"key1": "value1", "key2": "value2"},
+                "parents": [],
+            },
+            {
+                "title": "ipsum",
+                "url": "bar/",
+                "meta": {},
+                "parents": [],
             },
             {
                 "title": "dolor",
                 "url": "baz/",
                 "meta": {"key3": "value3", "key4": "value4"},
+                "parents": [],
             },
         ]
 
 
-def test_it_can_merge_metadata_file_content_in_techdocs_metadata(
+def test_it_can_find_page_meta_and_parents_in_file_system_and_include_in_techdocs_metadata(
     mock_config, plugin_instance
 ):
 
@@ -146,10 +154,14 @@ def test_it_can_merge_metadata_file_content_in_techdocs_metadata(
     plugin_instance.log = Mock()
     with open(os.path.join(docs_dir, ".meta.yml"), "w", encoding="utf-8") as f:
         f.write("description: bazz\ntags:\n- knapp")
+    with open(os.path.join(docs_dir, ".pages"), "w", encoding="utf-8") as f:
+        f.write("nav:\n- ...")
     with open(os.path.join(docs_dir, "bar.md"), "w", encoding="utf-8") as f:
         f.write("---\nkey3: value3\nkey4: value4\n---\n# bar")
     with open(os.path.join(docs_dir, "xyzzy", ".meta.yml"), "w", encoding="utf-8") as f:
         f.write("type: how-to\ntags:\n- plugh")
+    with open(os.path.join(docs_dir, "xyzzy", ".pages"), "w", encoding="utf-8") as f:
+        f.write("title: In Culpa Qui\nnav:\n- ...")
     with open(os.path.join(docs_dir, "xyzzy", "foo.md"), "w", encoding="utf-8") as f:
         f.write("# foo")
     with open(os.path.join(docs_dir, "xyzzy", "yyz.md"), "w", encoding="utf-8") as f:
@@ -159,6 +171,10 @@ def test_it_can_merge_metadata_file_content_in_techdocs_metadata(
     ) as f:
         f.write("type: explanation\ntags:\n- rust")
     with open(
+        os.path.join(docs_dir, "xyzzy", "fox", ".pages"), "w", encoding="utf-8"
+    ) as f:
+        f.write("title: Tempor Incididunt\nnav:\n- ...")
+    with open(
         os.path.join(docs_dir, "xyzzy", "fox", "rab.md"), "w", encoding="utf-8"
     ) as f:
         f.write("# foo")
@@ -166,6 +182,8 @@ def test_it_can_merge_metadata_file_content_in_techdocs_metadata(
         os.path.join(docs_dir, "foobar", ".meta.yml"), "w", encoding="utf-8"
     ) as f:
         f.write("tags:\n- typescript\ntype: reference")
+    with open(os.path.join(docs_dir, "foobar", ".pages"), "w", encoding="utf-8") as f:
+        f.write("collapse: true")
     with open(os.path.join(docs_dir, "foobar", "baz.md"), "w", encoding="utf-8") as f:
         f.write("---\ntags:\n- php\n---\n# baz")
     foo.read_source(config=mock_config)
@@ -175,11 +193,11 @@ def test_it_can_merge_metadata_file_content_in_techdocs_metadata(
     baz.read_source(config=mock_config)
 
     # act
-    plugin_instance.on_page_markdown(page=foo, markdown="markdown")
-    plugin_instance.on_page_markdown(page=yyz, markdown="markdown")
-    plugin_instance.on_page_markdown(page=bar, markdown="markdown")
-    plugin_instance.on_page_markdown(page=rab, markdown="markdown")
-    plugin_instance.on_page_markdown(page=baz, markdown="markdown")
+    plugin_instance.on_page_markdown(page=foo, markdown="markdown", config=mock_config)
+    plugin_instance.on_page_markdown(page=yyz, markdown="markdown", config=mock_config)
+    plugin_instance.on_page_markdown(page=bar, markdown="markdown", config=mock_config)
+    plugin_instance.on_page_markdown(page=rab, markdown="markdown", config=mock_config)
+    plugin_instance.on_page_markdown(page=baz, markdown="markdown", config=mock_config)
     plugin_instance.on_post_build(config=mock_config)
 
     # assert
@@ -197,6 +215,16 @@ def test_it_can_merge_metadata_file_content_in_techdocs_metadata(
                     "tags": ["knapp", "plugh"],
                     "description": "bazz",
                 },
+                "parents": [
+                    {
+                        "title": "",
+                        "url": "./",
+                    },
+                    {
+                        "title": "In Culpa Qui",
+                        "url": "xyzzy/",
+                    },
+                ],
             },
             {
                 "title": "yyz",
@@ -206,6 +234,16 @@ def test_it_can_merge_metadata_file_content_in_techdocs_metadata(
                     "tags": ["knapp", "plugh"],
                     "description": "bazz",
                 },
+                "parents": [
+                    {
+                        "title": "",
+                        "url": "./",
+                    },
+                    {
+                        "title": "In Culpa Qui",
+                        "url": "xyzzy/",
+                    },
+                ],
             },
             {
                 "title": "bar",
@@ -216,6 +254,7 @@ def test_it_can_merge_metadata_file_content_in_techdocs_metadata(
                     "tags": ["knapp"],
                     "description": "bazz",
                 },
+                "parents": [{"title": "", "url": "./"}],
             },
             {
                 "title": "rab",
@@ -225,6 +264,17 @@ def test_it_can_merge_metadata_file_content_in_techdocs_metadata(
                     "tags": ["knapp", "plugh", "rust"],
                     "description": "bazz",
                 },
+                "parents": [
+                    {
+                        "title": "",
+                        "url": "./",
+                    },
+                    {
+                        "title": "In Culpa Qui",
+                        "url": "xyzzy/",
+                    },
+                    {"title": "Tempor Incididunt", "url": "xyzzy/fox/"},
+                ],
             },
             {
                 "title": "baz",
@@ -234,6 +284,12 @@ def test_it_can_merge_metadata_file_content_in_techdocs_metadata(
                     "tags": ["knapp", "typescript", "php"],
                     "description": "bazz",
                 },
+                "parents": [
+                    {
+                        "title": "",
+                        "url": "./",
+                    }
+                ],
             },
         ]
 

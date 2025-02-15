@@ -10,7 +10,9 @@ class TechDocsMetadataPlugin(BasePlugin):
     def __init__(self):
         self.data = []
 
-    def on_page_markdown(self, markdown: str, page: Page, **kwargs) -> str:
+    def on_page_markdown(
+        self, markdown: str, page: Page, config: MkDocsConfig, **kwargs
+    ) -> str:
         file_path = page.file.abs_src_path
         file_dir = os.path.dirname(file_path)
 
@@ -48,10 +50,46 @@ class TechDocsMetadataPlugin(BasePlugin):
                     page_meta[key] = value
             page.meta = page_meta
 
-        if page.meta:
-            self.data.append(
-                {"title": page.title, "url": page.file.url, "meta": page.meta}
-            )
+        # Traverse up the directory tree to locate mkdocs-awesome-page .pages files
+        # and collect titles and directory paths as page parents
+        parents = []
+        current_dir = file_dir
+        docs_dir = os.path.abspath(config.docs_dir)
+        while current_dir:
+            pages_file_path = os.path.join(current_dir, ".pages")
+            if os.path.isfile(pages_file_path):
+                with open(pages_file_path, "r") as pages_file:
+                    pages_data = yaml.safe_load(pages_file)
+                    if pages_data:
+                        if (
+                            current_dir == file_dir
+                            and pages_data.get("collapse") == True
+                        ):
+                            parent_dir = os.path.dirname(current_dir)
+                            if parent_dir == current_dir:
+                                break
+                            current_dir = parent_dir
+                            continue
+                        relative_path = os.path.relpath(current_dir, docs_dir)
+                        title = pages_data.get("title", "")
+                        if relative_path != "." and not title:
+                            title = os.path.basename(current_dir)
+                        parents.append({"title": title, "url": f"{relative_path}/"})
+
+            parent_dir = os.path.dirname(current_dir)
+            if parent_dir == current_dir or current_dir == docs_dir:
+                break
+            current_dir = parent_dir
+
+        self.data.append(
+            {
+                "title": page.title,
+                "url": page.file.url,
+                "meta": page.meta or {},
+                "parents": parents[::-1],  # Reverse the list to get the correct order
+            }
+        )
+
         return markdown
 
     def on_post_build(self, config: MkDocsConfig, **kwargs) -> None:
